@@ -121,7 +121,7 @@ export const CreatePage: React.FC = () => {
       setCurrentThreadId(result.threadId);
 
       if (result.status === 'processing' && result.threadId) {
-        startPolling();
+        setTimeout(() => startPolling(), 0);
       } else if (result.interrupted && settings.enableHITL) {
         handleHITLInterrupt(result);
         startPolling();
@@ -156,7 +156,7 @@ export const CreatePage: React.FC = () => {
       setHitlMessages([]);
 
       if (result.status === 'processing' && result.threadId) {
-        startPolling();
+        setTimeout(() => startPolling(), 0);
       } else if (result.interrupted) {
         handleHITLInterrupt(result);
       } else {
