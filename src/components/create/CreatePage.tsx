@@ -93,6 +93,7 @@ export const CreatePage: React.FC = () => {
     threadId: currentThreadId,
     enabled: false,
     interval: 3000,
+    useProcessResult: true,
     onInterrupt: handleHITLInterrupt,
     onComplete: handleComplete,
     onError: handlePollingError,
@@ -119,7 +120,9 @@ export const CreatePage: React.FC = () => {
 
       setCurrentThreadId(result.threadId);
 
-      if (result.interrupted && settings.enableHITL) {
+      if (result.status === 'processing' && result.threadId) {
+        startPolling();
+      } else if (result.interrupted && settings.enableHITL) {
         handleHITLInterrupt(result);
         startPolling();
       } else {
@@ -152,7 +155,9 @@ export const CreatePage: React.FC = () => {
       setIsHITLModalOpen(false);
       setHitlMessages([]);
 
-      if (result.interrupted) {
+      if (result.status === 'processing' && result.threadId) {
+        startPolling();
+      } else if (result.interrupted) {
         handleHITLInterrupt(result);
       } else {
         startPolling();

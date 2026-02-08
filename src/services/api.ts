@@ -27,6 +27,37 @@ import type {
 } from '../types';
 import { cleanArtifactMessages } from '../utils/formatters';
 
+/** Map GET /api/process/result response body (200) to ProcessingStatusWithHITL. Handles both success and error payloads. */
+function mapProcessResultToStatus(data: Record<string, unknown>): ProcessingStatusWithHITL {
+  const threadId = String(data.thread_id ?? '');
+  if ('error' in data && data.error != null) {
+    return {
+      threadId,
+      sessionId: '',
+      status: 'failed',
+      error: String(data.error),
+      result: undefined,
+      interrupted: false,
+      awaiting_feedback: false,
+    };
+  }
+  const sessionId = data.session_id != null ? String(data.session_id) : '';
+  const result = data.result;
+  const hasInterrupts = Array.isArray(result);
+  const cleanedMessages = hasInterrupts ? cleanArtifactMessages(result) : undefined;
+  const current_node = data.current_node != null ? String(data.current_node) : undefined;
+  return {
+    threadId,
+    sessionId,
+    status: hasInterrupts ? 'processing' : 'completed',
+    result,
+    interrupted: hasInterrupts,
+    interrupt_message: cleanedMessages,
+    awaiting_feedback: hasInterrupts,
+    current_node,
+  };
+}
+
 class ApiService {
   private client: AxiosInstance;
   private promptConfigClient: AxiosInstance;
@@ -200,24 +231,32 @@ class ApiService {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 600000, // 10 min
+      timeout: 60000,
+      validateStatus: (s: number) => s === 200 || s === 202,
     });
-    
-    // Parse response for HITL interrupts
+
+    if (response.status === 202) {
+      const threadId = response.data?.thread_id ?? '';
+      return {
+        threadId,
+        sessionId: '',
+        status: 'processing',
+        result: undefined,
+        interrupted: false,
+        awaiting_feedback: false,
+        current_node: undefined,
+      };
+    }
+
     const hasInterrupts = Array.isArray(response.data.result);
-    
-    // Debug logging
     if (hasInterrupts) {
       console.log('🔍 Raw messages from backend:', response.data.result);
     }
-    
     const cleanedMessages = hasInterrupts ? cleanArtifactMessages(response.data.result) : undefined;
-    
-    // Debug logging
     if (cleanedMessages) {
       console.log('✅ Cleaned messages:', cleanedMessages);
     }
-    
+
     return {
       threadId: response.data.thread_id,
       sessionId: response.data.session_id,
@@ -490,16 +529,28 @@ class ApiService {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 600000, // 10 min
+      timeout: 60000,
+      validateStatus: (s: number) => s === 200 || s === 202,
       opikThreadId: params.thread_id,
     } as any);
 
     console.log('✅ HITL feedback response:', response.data);
 
-    // Parse response for HITL interrupts
+    if (response.status === 202) {
+      const threadId = response.data?.thread_id ?? params.thread_id;
+      return {
+        threadId,
+        sessionId: '',
+        status: 'processing',
+        result: undefined,
+        interrupted: false,
+        awaiting_feedback: false,
+        current_node: undefined,
+      };
+    }
+
     const hasInterrupts = Array.isArray(response.data.result);
     const cleanedMessages = hasInterrupts ? cleanArtifactMessages(response.data.result) : undefined;
-    
     return {
       threadId: response.data.thread_id,
       sessionId: response.data.session_id,
@@ -510,6 +561,22 @@ class ApiService {
       awaiting_feedback: hasInterrupts,
       current_node: response.data.current_node,
     };
+  }
+
+  /**
+   * Poll result after POST /api/process (202). Returns 202 + { status: 'pending' } or 200 + result/error.
+   */
+  async getProcessResult(threadId: string): Promise<{ status: number; data: Record<string, unknown> }> {
+    const response = await this.client.get<Record<string, unknown>>(`/process/result/${threadId}`, {
+      timeout: 30000,
+      validateStatus: (s: number) => s === 200 || s === 202,
+    });
+    return { status: response.status, data: response.data ?? {} };
+  }
+
+  /** Map getProcessResult 200 body to ProcessingStatusWithHITL. */
+  mapProcessResultToStatus(data: Record<string, unknown>): ProcessingStatusWithHITL {
+    return mapProcessResultToStatus(data);
   }
 
   async getThreadState(threadId: string): Promise<ProcessingStatusWithHITL> {

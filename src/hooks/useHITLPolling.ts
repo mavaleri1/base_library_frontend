@@ -6,6 +6,8 @@ interface UseHITLPollingOptions {
   threadId: string | null;
   enabled?: boolean;
   interval?: number;
+  /** When true, poll GET /api/process/result/{threadId} (artifacts-service) instead of GET /state/{threadId} (core). Use after 202 from POST /api/process. */
+  useProcessResult?: boolean;
   onInterrupt?: (status: ProcessingStatusWithHITL) => void;
   onComplete?: (status: ProcessingStatusWithHITL) => void;
   onError?: (error: Error) => void;
@@ -24,6 +26,7 @@ export const useHITLPolling = ({
   threadId,
   enabled = true,
   interval = 3000,
+  useProcessResult = false,
   onInterrupt,
   onComplete,
   onError,
@@ -48,8 +51,56 @@ export const useHITLPolling = ({
     if (!threadId || !isMountedRef.current) return;
 
     try {
+      if (useProcessResult) {
+        const { status: resStatus, data } = await api.getProcessResult(threadId);
+        if (!isMountedRef.current) return;
+
+        if (resStatus === 202 || (resStatus === 200 && data?.status === 'pending')) {
+          setStatus({
+            threadId,
+            sessionId: '',
+            status: 'processing',
+            interrupted: false,
+            awaiting_feedback: false,
+          });
+          setError(null);
+          previousStatusRef.current = 'processing';
+          return;
+        }
+
+        if (resStatus === 200 && data && 'error' in data && data.error != null) {
+          stopPolling();
+          const err = new Error(String(data.error));
+          setError(err);
+          onError?.(err);
+          return;
+        }
+
+        if (resStatus === 200 && data) {
+          const newStatus = api.mapProcessResultToStatus(data as Record<string, unknown>);
+          setStatus(newStatus);
+          setError(null);
+          previousStatusRef.current = newStatus.status;
+
+          if (newStatus.status === 'failed') {
+            stopPolling();
+            onError?.(new Error(newStatus.error || 'Processing failed'));
+            return;
+          }
+          if (newStatus.interrupted && newStatus.awaiting_feedback) {
+            stopPolling();
+            onInterrupt?.(newStatus);
+            return;
+          }
+          if (newStatus.status === 'completed') {
+            stopPolling();
+            onComplete?.(newStatus);
+          }
+          return;
+        }
+      }
+
       const newStatus = await api.getThreadState(threadId);
-      
       if (!isMountedRef.current) return;
 
       setStatus(newStatus);
@@ -79,7 +130,7 @@ export const useHITLPolling = ({
       onError?.(error);
       stopPolling();
     }
-  }, [threadId, onInterrupt, onComplete, onError, stopPolling]);
+  }, [threadId, useProcessResult, onInterrupt, onComplete, onError, stopPolling]);
 
   const startPolling = useCallback(() => {
     if (!threadId || isPolling) return;
