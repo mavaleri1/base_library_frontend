@@ -114,34 +114,6 @@ export interface ApiError {
   details?: any;
 }
 
-// Web3 Auth Types
-export interface Web3NonceRequest {
-  wallet_address: string;
-}
-
-export interface Web3NonceResponse {
-  nonce: string;
-  message: string;
-  expires_in: number;
-}
-
-export interface Web3SignatureVerifyRequest {
-  wallet_address: string;
-  signature: string;
-  nonce: string;
-}
-
-export interface Web3AuthResponse {
-  access_token: string;
-  token_type: string;
-  user: {
-    id: string;
-    wallet_address: string;
-    created_at: string;
-    last_login: string | null;
-  };
-}
-
 // Export Settings Types
 export type ExportFormat = 'markdown' | 'pdf';
 export type PackageType = 'final' | 'all';

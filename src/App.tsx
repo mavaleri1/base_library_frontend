@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { ClerkProvider } from '@clerk/clerk-react';
-import { Web3Provider } from './contexts/Web3Provider';
 import { AuthProvider } from './contexts/AuthContext';
 import { Layout } from './components/common/Layout';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
@@ -48,8 +47,7 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <ClerkProviderWithRouter>
-          <Web3Provider>
-            <AuthProvider>
+          <AuthProvider>
         <Routes>
           {/* Landing Page */}
           <Route path="/" element={<LandingPage />} />
@@ -185,7 +183,6 @@ function App() {
           />
         </Routes>
         </AuthProvider>
-      </Web3Provider>
     </ClerkProviderWithRouter>
   </BrowserRouter>
     </ErrorBoundary>

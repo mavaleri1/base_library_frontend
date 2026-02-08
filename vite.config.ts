@@ -23,16 +23,6 @@ export default defineConfig({
           if (id.includes('@radix-ui')) {
             return 'ui-components';
           }
-          // Web3 libraries - split into smaller chunks
-          if (id.includes('wagmi')) {
-            return 'wagmi';
-          }
-          if (id.includes('viem')) {
-            return 'viem';
-          }
-          if (id.includes('@coinbase/onchainkit')) {
-            return 'onchainkit';
-          }
           // Markdown and syntax highlighting
           if (id.includes('react-markdown') || id.includes('react-syntax-highlighter')) {
             return 'markdown';

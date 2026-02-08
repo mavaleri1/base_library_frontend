@@ -11,9 +11,6 @@ import type {
   UserProfile,
   ProcessingStatus,
   CreateMaterialParams,
-  Web3NonceResponse,
-  Web3SignatureVerifyRequest,
-  Web3AuthResponse,
   SessionSummary,
   ExportSettings,
   Placeholder,
@@ -175,19 +172,6 @@ class ApiService {
       authMethod: 'clerk' as const,
       createdAt: data.created_at,
     };
-  }
-
-  // Web3 Auth
-  async requestWeb3Nonce(walletAddress: string): Promise<Web3NonceResponse> {
-    const response = await this.client.post<Web3NonceResponse>('/auth/request-nonce', {
-      wallet_address: walletAddress,
-    });
-    return response.data;
-  }
-
-  async verifyWeb3Signature(request: Web3SignatureVerifyRequest): Promise<Web3AuthResponse> {
-    const response = await this.client.post<Web3AuthResponse>('/auth/verify-signature', request);
-    return response.data;
   }
 
   // Materials
