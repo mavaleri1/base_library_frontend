@@ -66,6 +66,7 @@ export const CreatePage: React.FC = () => {
   }, [user?.id]);
 
   const handleHITLInterrupt = useCallback((status: ProcessingStatusWithHITL) => {
+    setPollingEnabled(false);
     if (status.interrupt_message && status.interrupt_message.length > 0) {
       setHitlMessages(status.interrupt_message);
       setCurrentNode(status.current_node);
@@ -75,6 +76,7 @@ export const CreatePage: React.FC = () => {
   }, []);
 
   const handleComplete = useCallback((status: ProcessingStatusWithHITL) => {
+    setPollingEnabled(false);
     setIsSubmitting(false);
     clearFiles();
     
@@ -86,6 +88,7 @@ export const CreatePage: React.FC = () => {
   }, [navigate, clearFiles]);
 
   const handlePollingError = useCallback((error: Error) => {
+    setPollingEnabled(false);
     setSubmitError(error.message);
     setIsSubmitting(false);
   }, []);
