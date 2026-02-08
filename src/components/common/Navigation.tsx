@@ -1,0 +1,139 @@
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { Button } from '../ui';
+import { Home, Plus, FileText, User, LogOut, Menu, X } from 'lucide-react';
+import { cn } from '../../utils/cn';
+import { useUser } from '@clerk/clerk-react';
+
+export const Navigation: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { user: clerkUser } = useUser();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: <Home size={18} /> },
+    { path: '/create', label: 'Create', icon: <Plus size={18} /> },
+    { path: '/threads', label: 'Materials', icon: <FileText size={18} /> },
+    // { path: '/leaderboard', label: 'Leaderboard', icon: <Trophy size={18} /> },
+    { path: '/profile', label: 'Profile', icon: <User size={18} /> },
+    //{ path: '/debug/materials', label: 'Debug', icon: <Bug size={18} /> },
+  ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  return (
+    <nav className="border-b border-border bg-white sticky top-0 z-50 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <span className="font-bold text-ink text-lg">Base Library</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
+              <Link key={item.path} to={item.path}>
+                <Button
+                  variant={location.pathname === item.path ? 'primary' : 'ghost'}
+                  size="sm"
+                  icon={item.icon}
+                >
+                  {item.label}
+                </Button>
+              </Link>
+            ))}
+          </div>
+
+          {/* User Menu */}
+          <div className="hidden md:flex items-center gap-3">
+            {user ? (
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-ink">{user.name}</p>
+                  <p className="text-xs text-muted">{user.email || clerkUser?.primaryEmailAddress?.emailAddress}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-right">
+                <p className="text-sm font-medium text-ink">Not authorized</p>
+              </div>
+            )}
+            
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<LogOut size={16} />}
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 text-ink"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-border">
+            {/* User Info */}
+            <div className="px-4 py-3 border-b border-border">
+              {user ? (
+                <div>
+                  <p className="text-sm font-medium text-ink">{user.name}</p>
+                  <p className="text-xs text-muted">{user.email || clerkUser?.primaryEmailAddress?.emailAddress}</p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm font-medium text-ink">Not authorized</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <div
+                    className={cn(
+                      'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+                      location.pathname === item.path
+                        ? 'bg-primary text-white'
+                        : 'text-ink hover:bg-surface'
+                    )}
+                  >
+                    {item.icon}
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                </Link>
+              ))}
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-ink hover:bg-surface transition-colors"
+              >
+                <LogOut size={18} />
+                <span className="font-medium">Logout</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+};
+

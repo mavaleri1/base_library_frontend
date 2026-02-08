@@ -1,0 +1,64 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/auth/(.*)",
+      "destination": "http://147.93.144.61:8001/api/auth/$1"
+    },
+    {
+      "source": "/api/state/(.*)",
+      "destination": "http://147.93.144.61:8000/state/$1"
+    },
+    {
+      "source": "/api/threads",
+      "destination": "http://147.93.144.61:8001/threads"
+    },
+    {
+      "source": "/api/threads/(.*)",
+      "destination": "http://147.93.144.61:8001/threads/$1"
+    },
+    {
+      "source": "/api/users/(.*)",
+      "destination": "http://147.93.144.61:8001/users/$1"
+    },
+    {
+      "source": "/api/materials/my",
+      "destination": "http://147.93.144.61:8001/api/materials/my"
+    },
+    {
+      "source": "/api/materials/(.*)",
+      "destination": "http://147.93.144.61:8001/api/materials/$1"
+    },
+    {
+      "source": "/api/process",
+      "destination": "http://147.93.144.61:8001/api/process"
+    },
+    {
+      "source": "/api/upload-images/(.*)",
+      "destination": "http://147.93.144.61:8000/upload-images/$1"
+    },
+    {
+      "source": "/api/upload-images",
+      "destination": "http://147.93.144.61:8000/upload-images"
+    },
+    {
+      "source": "/api/hitl/(.*)",
+      "destination": "http://147.93.144.61:8000/api/hitl/$1"
+    },
+    {
+      "source": "/api/opik/(.*)",
+      "destination": "http://147.93.144.61:8000/api/opik/$1"
+    },
+    {
+      "source": "/api/v1/(.*)",
+      "destination": "http://147.93.144.61:8002/api/v1/$1"
+    }
+  ],
+  "env": {
+    "VITE_API_BASE_URL": "/api",
+    "VITE_PROMPT_CONFIG_API_URL": "/api/v1",
+    "VITE_ENABLE_WEBSOCKET": "true",
+    "VITE_ENABLE_EXPORT": "true",
+    "VITE_WALLETCONNECT_PROJECT_ID": "3dc052b5-73b6-4318-9b1b-0da64f2d3ca8",
+    "VITE_ONCHAINKIT_API_KEY": "idlt1CVfj7Cf8UGCUFs0zJxzyjWm8kO3"
+  }
+}
