@@ -8,53 +8,6 @@ export default defineConfig({
     global: 'globalThis',
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          // React and core libraries
-          if (id.includes('react') || id.includes('react-dom')) {
-            return 'react-vendor';
-          }
-          // Router
-          if (id.includes('react-router')) {
-            return 'router';
-          }
-          // Radix UI components
-          if (id.includes('@radix-ui')) {
-            return 'ui-components';
-          }
-          // Markdown and syntax highlighting
-          if (id.includes('react-markdown') || id.includes('react-syntax-highlighter')) {
-            return 'markdown';
-          }
-          if (id.includes('katex') || id.includes('rehype-katex') || id.includes('remark-math')) {
-            return 'math';
-          }
-          // Utility libraries
-          if (id.includes('axios')) {
-            return 'axios';
-          }
-          if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) {
-            return 'utils';
-          }
-          if (id.includes('valtio')) {
-            return 'valtio';
-          }
-          // TanStack Query
-          if (id.includes('@tanstack')) {
-            return 'tanstack';
-          }
-          // Lucide icons
-          if (id.includes('lucide-react')) {
-            return 'icons';
-          }
-          // Large dependencies
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        }
-      }
-    },
     chunkSizeWarningLimit: 1000,
     target: 'esnext',
     minify: 'esbuild'
