@@ -33,7 +33,11 @@ const ClerkProviderWithRouter: React.FC<{ children: ReactNode }> = ({ children }
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey} navigate={navigate}>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      routerPush={(to) => navigate(to)}
+      routerReplace={(to) => navigate(to, { replace: true })}
+    >
       {children}
     </ClerkProvider>
   );

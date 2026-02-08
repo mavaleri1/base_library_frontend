@@ -1,7 +1,6 @@
 import React from 'react';
 import { SignIn } from '@clerk/clerk-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui';
-import LogoLogin from './logo/LogoLogin.jpg';
 
 export const LoginPage: React.FC = () => {
   return (

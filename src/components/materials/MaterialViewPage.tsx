@@ -37,7 +37,7 @@ export const MaterialViewPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const fileParam = searchParams.get('file');
-  const hasScrolledToFile = useRef(false);
+  const hasScrolledToFile = useRef<string | null>(null);
 
   const [metadata, setMetadata] = useState<SessionMetadata | null>(null);
   const [materials, setMaterials] = useState<MaterialContent[]>([]);
