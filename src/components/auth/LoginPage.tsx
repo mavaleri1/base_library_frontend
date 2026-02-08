@@ -1,8 +1,15 @@
 import React from 'react';
-import { SignIn } from '@clerk/clerk-react';
+import { SignIn, useAuth } from '@clerk/clerk-react';
+import { Navigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui';
 
 export const LoginPage: React.FC = () => {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (isLoaded && isSignedIn) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
     <div className="min-h-screen flex items-start justify-center px-4 pt-16" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="w-full max-w-md animate-scale-in">

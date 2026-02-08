@@ -36,10 +36,15 @@ class ApiService {
     // Use environment variables for URL configuration
     // In development: use /api (proxy)
     // In production: use /api (Vercel rewrites)
-    const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
-    const promptConfigURL = String(import.meta.env.VITE_PROMPT_CONFIG_API_URL || '/api/v1');
-    
-    
+    let baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
+    let promptConfigURL = String(import.meta.env.VITE_PROMPT_CONFIG_API_URL || '/api/v1');
+
+    const isPageHttps = typeof window !== 'undefined' && window.location?.protocol === 'https:';
+    if (isPageHttps) {
+      if (baseURL.startsWith('http://')) baseURL = '/api';
+      if (promptConfigURL.startsWith('http://')) promptConfigURL = '/api/v1';
+    }
+
     console.log('🔧 API Service initialized with baseURL:', baseURL);
     console.log('🔧 Environment:', import.meta.env.MODE);
     
