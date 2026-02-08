@@ -38,12 +38,22 @@ export const useHITLPolling = ({
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
   const previousStatusRef = useRef<string | undefined>(undefined);
+  const isPollingRef = useRef(false);
+
+  // Store callbacks in refs to avoid re-creating fetchStatus/startPolling on every render
+  const onInterruptRef = useRef(onInterrupt);
+  const onCompleteRef = useRef(onComplete);
+  const onErrorRef = useRef(onError);
+  useEffect(() => { onInterruptRef.current = onInterrupt; }, [onInterrupt]);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
+    isPollingRef.current = false;
     setIsPolling(false);
   }, []);
 
@@ -55,6 +65,7 @@ export const useHITLPolling = ({
         const { status: resStatus, data } = await api.getProcessResult(threadId);
         if (!isMountedRef.current) return;
 
+        // Still pending — keep polling
         if (resStatus === 202 || (resStatus === 200 && data?.status === 'pending')) {
           setStatus({
             threadId,
@@ -68,14 +79,16 @@ export const useHITLPolling = ({
           return;
         }
 
+        // Error from backend
         if (resStatus === 200 && data && 'error' in data && data.error != null) {
           stopPolling();
           const err = new Error(String(data.error));
           setError(err);
-          onError?.(err);
+          onErrorRef.current?.(err);
           return;
         }
 
+        // Got a result
         if (resStatus === 200 && data) {
           const newStatus = api.mapProcessResultToStatus(data as Record<string, unknown>);
           setStatus(newStatus);
@@ -84,22 +97,23 @@ export const useHITLPolling = ({
 
           if (newStatus.status === 'failed') {
             stopPolling();
-            onError?.(new Error(newStatus.error || 'Processing failed'));
+            onErrorRef.current?.(new Error(newStatus.error || 'Processing failed'));
             return;
           }
           if (newStatus.interrupted && newStatus.awaiting_feedback) {
             stopPolling();
-            onInterrupt?.(newStatus);
+            onInterruptRef.current?.(newStatus);
             return;
           }
           if (newStatus.status === 'completed') {
             stopPolling();
-            onComplete?.(newStatus);
+            onCompleteRef.current?.(newStatus);
           }
           return;
         }
       }
 
+      // Fallback: poll getThreadState (core)
       const newStatus = await api.getThreadState(threadId);
       if (!isMountedRef.current) return;
 
@@ -108,17 +122,17 @@ export const useHITLPolling = ({
 
       if (newStatus.interrupted && newStatus.awaiting_feedback) {
         stopPolling();
-        onInterrupt?.(newStatus);
+        onInterruptRef.current?.(newStatus);
       } 
       else if (newStatus.status === 'completed' && previousStatusRef.current !== 'completed') {
         stopPolling();
-        onComplete?.(newStatus);
+        onCompleteRef.current?.(newStatus);
       }
       else if (newStatus.status === 'failed') {
         stopPolling();
         const err = new Error(newStatus.error || 'Processing failed with error');
         setError(err);
-        onError?.(err);
+        onErrorRef.current?.(err);
       }
 
       previousStatusRef.current = newStatus.status;
@@ -127,14 +141,15 @@ export const useHITLPolling = ({
       
       const error = err instanceof Error ? err : new Error(err.message || 'Error getting status');
       setError(error);
-      onError?.(error);
+      onErrorRef.current?.(error);
       stopPolling();
     }
-  }, [threadId, useProcessResult, onInterrupt, onComplete, onError, stopPolling]);
+  }, [threadId, useProcessResult, stopPolling]);
 
   const startPolling = useCallback(() => {
-    if (!threadId || isPolling) return;
+    if (!threadId || isPollingRef.current) return;
 
+    isPollingRef.current = true;
     setIsPolling(true);
     setError(null);
     previousStatusRef.current = undefined;
@@ -142,16 +157,17 @@ export const useHITLPolling = ({
     fetchStatus();
 
     intervalRef.current = setInterval(fetchStatus, interval);
-  }, [threadId, isPolling, fetchStatus, interval]);
+  }, [threadId, fetchStatus, interval]);
 
   const refreshStatus = useCallback(async () => {
     await fetchStatus();
   }, [fetchStatus]);
 
+  // Auto-start when enabled + threadId are set
   useEffect(() => {
     isMountedRef.current = true;
 
-    if (enabled && threadId) {
+    if (enabled && threadId && !isPollingRef.current) {
       startPolling();
     }
 
@@ -170,6 +186,3 @@ export const useHITLPolling = ({
     refreshStatus,
   };
 };
-
-
-

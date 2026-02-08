@@ -36,6 +36,7 @@ export const CreatePage: React.FC = () => {
   const [hitlMessages, setHitlMessages] = useState<string[]>([]);
   const [currentNode, setCurrentNode] = useState<string | undefined>();
   const [isSendingFeedback, setIsSendingFeedback] = useState(false);
+  const [pollingEnabled, setPollingEnabled] = useState(false);
 
   const [placeholders, setPlaceholders] = useState<Placeholder[]>([]);
   const [userPlaceholderSettings, setUserPlaceholderSettings] = useState<UserPlaceholderSettings | null>(null);
@@ -89,9 +90,9 @@ export const CreatePage: React.FC = () => {
     setIsSubmitting(false);
   }, []);
 
-  const { startPolling, stopPolling } = useHITLPolling({
+  const { stopPolling } = useHITLPolling({
     threadId: currentThreadId,
-    enabled: false,
+    enabled: pollingEnabled,
     interval: 3000,
     useProcessResult: true,
     onInterrupt: handleHITLInterrupt,
@@ -121,10 +122,10 @@ export const CreatePage: React.FC = () => {
       setCurrentThreadId(result.threadId);
 
       if (result.status === 'processing' && result.threadId) {
-        setTimeout(() => startPolling(), 0);
+        setPollingEnabled(true);
       } else if (result.interrupted && settings.enableHITL) {
         handleHITLInterrupt(result);
-        startPolling();
+        setPollingEnabled(true);
       } else {
         handleComplete(result);
       }
@@ -156,11 +157,11 @@ export const CreatePage: React.FC = () => {
       setHitlMessages([]);
 
       if (result.status === 'processing' && result.threadId) {
-        setTimeout(() => startPolling(), 0);
+        setPollingEnabled(true);
       } else if (result.interrupted) {
         handleHITLInterrupt(result);
       } else {
-        startPolling();
+        setPollingEnabled(true);
       }
     } catch (error: any) {
       console.error('❌ Failed to send feedback:', error);
@@ -172,6 +173,7 @@ export const CreatePage: React.FC = () => {
 
   const handleCloseModal = () => {
     setIsHITLModalOpen(false);
+    setPollingEnabled(false);
     stopPolling();
     setIsSubmitting(false);
     setCurrentThreadId(null);
