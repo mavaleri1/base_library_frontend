@@ -14,7 +14,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </main>
       <footer className="border-t border-border py-6">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-muted">
-          <p>© 2025 Base Library. All rights reserved.</p>
+          <p>© 2026 Base Library</p>
           <p className="mt-1">
             <a
               href="https://www.comet.com/opik"
@@ -22,7 +22,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               rel="noopener noreferrer"
               className="underline hover:text-foreground"
             >
-              View traces in Opik
+              Traced by Opik
             </a>
           </p>
         </div>
