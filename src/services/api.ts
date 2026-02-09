@@ -173,7 +173,7 @@ class ApiService {
   ): Promise<void> {
     if (!threadId) return;
     try {
-      await this.client.post('/api/opik/client-event', {
+      await this.client.post('opik/client-event', {
         thread_id: threadId,
         event_type: eventType,
         payload,

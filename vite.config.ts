@@ -55,6 +55,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
+      // Opik client-event → Core/Graph service (port 8000)
+      '/api/opik': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
       // Prompt Config Service - local (port 8002)
       '/api/v1': {
         target: 'http://localhost:8002',

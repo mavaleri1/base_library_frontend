@@ -156,14 +156,13 @@ export const CreatePage: React.FC = () => {
       console.log('✅ Feedback sent successfully:', result);
       api.logClientEvent(currentThreadId, 'hitl_submitted', { node: currentNode, feedback_length: feedback?.length ?? 0 }).catch(() => {});
 
-      setIsHITLModalOpen(false);
-      setHitlMessages([]);
-
       if (result.status === 'processing' && result.threadId) {
+        setHitlMessages(['Processing your feedback...']);
         setPollingEnabled(true);
       } else if (result.interrupted) {
         handleHITLInterrupt(result);
       } else {
+        setHitlMessages(['Processing...']);
         setPollingEnabled(true);
       }
     } catch (error: any) {
