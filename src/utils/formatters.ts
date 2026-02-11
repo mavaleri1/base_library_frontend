@@ -93,3 +93,26 @@ export function convertBackendFileUrlToFrontendRoute(url: string): string {
   return url;
 }
 
+/**
+ * Converts backend session URL to correct frontend route (no file)
+ * Examples:
+ *   http://127.0.0.1/threads/{id}/sessions/{sid} → /threads/{id}/sessions/{sid}
+ *   http://host/thread/{id}/session/{sid} (no /file/) → /threads/{id}/sessions/{sid}
+ */
+export function convertBackendSessionUrlToFrontendRoute(url: string): string {
+  // Pattern: .../threads/{thread_id}/sessions/{session_id} (current backend format)
+  const threadsMatch = url.match(/\/threads\/([^/]+)\/sessions\/([^/?]+)/);
+  if (threadsMatch) {
+    const [, threadId, sessionId] = threadsMatch;
+    return `/threads/${threadId}/sessions/${sessionId}`;
+  }
+  // Pattern: .../thread/{thread_id}/session/{session_id} without /file/ (legacy)
+  if (url.includes('/thread/') && url.includes('/session/') && !url.includes('/file/')) {
+    const match = url.match(/\/thread\/([^/]+)\/session\/([^/?]+)/);
+    if (match) {
+      const [, threadId, sessionId] = match;
+      return `/threads/${threadId}/sessions/${sessionId}`;
+    }
+  }
+  return url;
+}

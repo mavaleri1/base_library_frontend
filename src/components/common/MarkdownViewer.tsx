@@ -11,7 +11,7 @@ import * as PrismStyles from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 
 import { useTheme } from "../../hooks/useTheme";
-import { cleanArtifactUrls, convertBackendFileUrlToFrontendRoute } from '../../utils/formatters';
+import { cleanArtifactUrls, convertBackendFileUrlToFrontendRoute, convertBackendSessionUrlToFrontendRoute } from '../../utils/formatters';
 
 interface MarkdownViewerProps {
   content: string;
@@ -121,6 +121,25 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
               // Convert the backend URL to the frontend route; open in new tab
               const frontendRoute = convertBackendFileUrlToFrontendRoute(cleanedHref);
               
+              return (
+                <a 
+                  href={frontendRoute}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:brightness-110 underline underline-offset-2 transition-all duration-120 cursor-pointer"
+                >
+                  {children}
+                </a>
+              );
+            }
+            
+            // Check if the link is backend session URL (e.g. "All materials available here")
+            const isBackendSessionUrl =
+              cleanedHref?.includes('/threads/') && cleanedHref?.includes('/sessions/') ||
+              (cleanedHref?.includes('/thread/') && cleanedHref?.includes('/session/') && !cleanedHref?.includes('/file/'));
+            
+            if (isBackendSessionUrl && cleanedHref) {
+              const frontendRoute = convertBackendSessionUrlToFrontendRoute(cleanedHref);
               return (
                 <a 
                   href={frontendRoute}
