@@ -22,7 +22,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               rel="noopener noreferrer"
               className="underline hover:text-foreground"
             >
-              Traced by Opik
+              Traced by Comet - Opik
             </a>
           </p>
         </div>
